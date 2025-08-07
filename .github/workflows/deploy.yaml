@@ -1,0 +1,23 @@
+name: Build and Deploy to GKE
+
+on:
+  push:
+    branches:
+      - main
+
+env:
+  PROJECT_ID: internet-truck-stop
+  GAR_LOCATION: us-central1
+  REPOSITORY: internet-truck-stop-repo
+  IMAGE: internet-truck-stop
+  CLUSTER_NAME: internet-truck-stop-cluster
+  CLUSTER_LOCATION: us-central1
+
+jobs:
+  build-deploy:
+    name: Build and Deploy
+    runs-on: ubuntu-latest
+
+    steps:
+      - name: Checkout code
+        uses: actions/checkout@v4
