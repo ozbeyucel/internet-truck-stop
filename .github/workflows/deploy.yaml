@@ -14,8 +14,8 @@ env:
   CLUSTER_LOCATION: us-central1
 
 jobs:
-  build-deploy:
-    name: Build and Deploy
+  build-and-deploy:
+    name: Build and Deploy Docker image to GKE
     runs-on: ubuntu-latest
 
     steps:
@@ -29,6 +29,9 @@ jobs:
 
       - name: Set up Google Cloud SDK
         uses: google-github-actions/setup-gcloud@v2
+        with:
+          project_id: ${{ env.PROJECT_ID }}
+          install_components: 'gke-gcloud-auth-plugin'
 
       - name: Configure Docker for Artifact Registry
         run: gcloud auth configure-docker $GAR_LOCATION-docker.pkg.dev --quiet
@@ -38,12 +41,9 @@ jobs:
           docker build -t $GAR_LOCATION-docker.pkg.dev/$PROJECT_ID/$REPOSITORY/$IMAGE:$GITHUB_SHA nodejs-app
           docker push $GAR_LOCATION-docker.pkg.dev/$PROJECT_ID/$REPOSITORY/$IMAGE:$GITHUB_SHA
 
-      - name: Set up GKE credentials
-        uses: google-github-actions/get-gke-credentials@v2
-        with:
-          cluster_name: ${{ env.CLUSTER_NAME }}
-          location: ${{ env.CLUSTER_LOCATION }}
+      - name: Get GKE credentials
+        run: gcloud container clusters get-credentials $CLUSTER_NAME --region $CLUSTER_LOCATION --project $PROJECT_ID
 
-      - name: Deploy to GKE
+      - name: Deploy to GKE with kubectl
         run: |
-          kubectl set image deployment/nodejs-deployment nodejs=$GAR_LOCATION-docker.pkg.dev/$PROJECT_ID/$REPOSITORY/$IMAGE:$GITHUB_SHA
+          kubectl set image deployment/$IMAGE $IMAGE=$GAR_LOCATION-docker.pkg.dev/$PROJECT_ID/$REPOSITORY/$IMAGE:$GITHUB_SHA
