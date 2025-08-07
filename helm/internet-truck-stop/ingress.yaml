@@ -1,0 +1,25 @@
+apiVersion: networking.k8s.io/v1
+kind: Ingress
+metadata:
+  name: internet-truck-stop-ingress
+  namespace: default
+  annotations:
+    kubernetes.io/ingress.class: nginx
+    cert-manager.io/cluster-issuer: letsencrypt-staging
+    nginx.ingress.kubernetes.io/rewrite-target: /
+spec:
+  rules:
+    - host: internet-truck-stop.ozbyexpedite.com
+      http:
+        paths:
+          - path: /
+            pathType: Prefix
+            backend:
+              service:
+                name: internet-truck-stop
+                port:
+                  number: 80
+  tls:
+    - hosts:
+        - internet-truck-stop.ozbyexpedite.com
+      secretName: internet-truck-stop-tls
